@@ -1,0 +1,48 @@
+{
+  "name": "note-term-desktop",
+  "version": "1.0.0",
+  "description": "Note term desktop version",
+  "main": "dist/main.js",
+  "repository": "https://github.com/DustinCraig/note-term-desktop",
+  "author": "Dustin Craig",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "electron": "^36.3.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "styled-components": "^6.1.18",
+    "uuid": "^11.1.0"
+  },
+  "scripts": {
+    "start": "electron .",
+    "build": "webpack --mode production",
+    "watch": "webpack --mode development --watch",
+    "dev": "concurrently \"yarn watch\" \"wait-on dist/renderer.js dist/main.js && cross-env NODE_ENV=development electron .\"",
+    "clean": "rm -rf dist",
+    "dev:clean": "yarn clean && yarn dev"
+  },
+  "devDependencies": {
+    "@types/electron": "^1.6.12",
+    "@types/node": "^22.15.26",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "css-loader": "^7.1.2",
+    "electron-builder": "^26.0.12",
+    "html-webpack-plugin": "^5.6.3",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "wait-on": "^8.0.3",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.1"
+  }
+}
