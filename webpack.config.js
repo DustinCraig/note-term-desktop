@@ -33,7 +33,14 @@ const rendererConfig = {
     rules: [
       {
         test: /\.tsx?$/,
-        use: "ts-loader",
+        use: [
+          {
+            loader: "ts-loader",
+            options: {
+              transpileOnly: true,
+            },
+          },
+        ],
         exclude: /node_modules/,
       },
       {
@@ -44,6 +51,12 @@ const rendererConfig = {
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
+    alias: {
+      "styled-components": path.resolve(
+        __dirname,
+        "node_modules/styled-components"
+      ),
+    },
   },
   output: {
     filename: "renderer.js",
