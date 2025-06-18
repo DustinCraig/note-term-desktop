@@ -107,7 +107,10 @@ export const EditorPreview = ({
       <PreviewContainer>
         <h2>Welcome to note-term!</h2>
         <br />
-        <p>Create a note from the sidebar to get started.</p>
+        <p>
+          Select an existing note or create a note from the sidebar to get
+          started.
+        </p>
       </PreviewContainer>
     );
   }

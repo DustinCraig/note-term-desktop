@@ -7,7 +7,6 @@
   "author": "Dustin Craig",
   "license": "MIT",
   "private": false,
-  "type": "module",
   "dependencies": {
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",

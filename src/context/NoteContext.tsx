@@ -1,9 +1,16 @@
 import type { ReactNode } from "react";
-import { createContext, useContext, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
+import { api } from "../services/api";
 
 export interface Note {
-  id: string;
+  id: number;
   title: string;
   content: string;
   folderId?: string;
@@ -14,10 +21,12 @@ export type NoteContextType = {
   selectedNote?: Note;
   setSelectedNote: (note?: Note) => void;
   updateNote: (note: Note) => void;
-  addNote: (title: string, folderId?: string) => boolean;
+  addNote: (title: string, folderId?: string) => Promise<boolean>;
   deleteNote: (note: Note) => boolean;
   isPreview: boolean;
   setIsPreview: (isPreview: boolean) => void;
+  isLoading: boolean;
+  error: Error | null;
 };
 
 export const NoteContext = createContext<NoteContextType | null>(null);
@@ -26,17 +35,58 @@ export const NoteProvider = ({ children }: { children: ReactNode }) => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | undefined>(undefined);
   const [isPreview, setIsPreview] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const ignoreAPIResult = useRef(false);
 
-  const addNote = (title: string, folderId?: string) => {
+  const fetchNotes = useCallback(async () => {
+    if (ignoreAPIResult.current) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const notes = await api.fetchNotes();
+      console.log("setting notes to", notes);
+      setNotes(notes);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err
+          : new Error("Unknown error while fetching notes")
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    ignoreAPIResult.current = false;
+    fetchNotes();
+    return () => {
+      ignoreAPIResult.current = true;
+    };
+  }, [fetchNotes]);
+
+  const addNote = async (title: string, folderId?: string) => {
     const note: Note = {
       title,
       content: "New note!",
       folderId,
-      id: uuidv4(),
+      id: -1,
     };
-    setNotes([...notes, note]);
-    setSelectedNote(note);
-    setIsPreview(false);
+    try {
+      await api.createNote(note);
+      setNotes([...notes, note]);
+      setSelectedNote(note);
+      setIsPreview(false);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err
+          : new Error("Unknown error while fetching notes")
+      );
+      return false;
+    }
     return true;
   };
 
@@ -55,6 +105,7 @@ export const NoteProvider = ({ children }: { children: ReactNode }) => {
   const _setSelectedNote = (note?: Note) => {
     if (note?.id !== selectedNote?.id) {
       setSelectedNote(note);
+      setIsPreview(true);
     }
   };
 
@@ -67,6 +118,8 @@ export const NoteProvider = ({ children }: { children: ReactNode }) => {
     deleteNote,
     isPreview: isPreview,
     setIsPreview,
+    isLoading,
+    error,
   };
 
   return <NoteContext.Provider value={value}>{children}</NoteContext.Provider>;

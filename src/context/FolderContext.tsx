@@ -1,6 +1,14 @@
 import type { ReactNode } from "react";
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useCallback,
+  useState,
+  useRef,
+} from "react";
 import { v4 as uuidv4 } from "uuid";
+import { api } from "../services/api";
 
 export type Folder = {
   id: string;
@@ -12,12 +20,45 @@ export type FolderContextType = {
   addFolder: (folderName: string) => boolean;
   deleteFolder: (folder: Folder) => boolean;
   renameFolder: (folder: Folder, newName: string) => boolean;
+  isLoading: boolean;
+  error: Error | null;
 };
 
 export const FolderContext = createContext<FolderContextType | null>(null);
 
 export const FolderProvider = ({ children }: { children: ReactNode }) => {
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const ignoreAPIResult = useRef(false);
+
+  const fetchFolders = useCallback(async () => {
+    if (ignoreAPIResult.current) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const folders = await api.fetchFolders();
+      console.log(`setting folders to ${folders}`);
+      setFolders(folders);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err
+          : new Error("Unknown error while fetching folders")
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    ignoreAPIResult.current = false;
+    fetchFolders();
+    return () => {
+      ignoreAPIResult.current = true;
+    };
+  }, [fetchFolders]);
 
   const addFolder = (folderName: string) => {
     if (!folderName) {
@@ -51,6 +92,8 @@ export const FolderProvider = ({ children }: { children: ReactNode }) => {
     addFolder,
     deleteFolder,
     renameFolder,
+    error,
+    isLoading,
   };
 
   return (
