@@ -11,13 +11,13 @@ import { v4 as uuidv4 } from "uuid";
 import { api } from "../services/api";
 
 export type Folder = {
-  id: string;
+  id: number;
   name: string;
 };
 
 export type FolderContextType = {
   folders: Folder[];
-  addFolder: (folderName: string) => boolean;
+  addFolder: (folderName: string) => Promise<boolean>;
   deleteFolder: (folder: Folder) => boolean;
   renameFolder: (folder: Folder, newName: string) => boolean;
   isLoading: boolean;
@@ -60,15 +60,31 @@ export const FolderProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [fetchFolders]);
 
-  const addFolder = (folderName: string) => {
+  const addFolder = async (folderName: string) => {
     if (!folderName) {
       throw new Error("Got empty folder name");
     }
     const folder: Folder = {
-      id: uuidv4(),
+      id: -1,
       name: folderName,
     };
-    setFolders([...folders, folder]);
+
+    try {
+      const result = await api.createFolder(folder);
+      if (!result.success) {
+        throw new Error(
+          result.message ?? "Unknown error while creating folder"
+        );
+      }
+      setFolders([...folders, folder]);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err
+          : new Error("Unknown error while creating folder")
+      );
+      return false;
+    }
     return true;
   };
 
