@@ -13,7 +13,7 @@ export interface Note {
   id: number;
   title: string;
   content: string;
-  folderId?: string;
+  folderid?: number;
 }
 
 export type NoteContextType = {
@@ -21,8 +21,8 @@ export type NoteContextType = {
   selectedNote?: Note;
   setSelectedNote: (note?: Note) => void;
   updateNote: (note: Note) => void;
-  addNote: (title: string, folderId?: string) => Promise<boolean>;
-  deleteNote: (note: Note) => boolean;
+  addNote: (title: string, folderid?: number) => Promise<boolean>;
+  deleteNote: (note: Note) => Promise<boolean>;
   isPreview: boolean;
   setIsPreview: (isPreview: boolean) => void;
   isLoading: boolean;
@@ -46,7 +46,6 @@ export const NoteProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       const notes = await api.fetchNotes();
-      console.log("setting notes to", notes);
       setNotes(notes);
     } catch (err) {
       setError(
@@ -67,15 +66,18 @@ export const NoteProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [fetchNotes]);
 
-  const addNote = async (title: string, folderId?: string) => {
+  const addNote = async (title: string, folderid?: number) => {
     const note: Note = {
       title,
       content: "New note!",
-      folderId,
+      folderid,
       id: -1,
     };
     try {
-      await api.createNote(note);
+      const result = await api.createNote(note);
+      if (!result.success) {
+        throw new Error(result.message ?? "Unknown error while creating note");
+      }
       setNotes([...notes, note]);
       setSelectedNote(note);
       setIsPreview(false);
@@ -83,23 +85,56 @@ export const NoteProvider = ({ children }: { children: ReactNode }) => {
       setError(
         err instanceof Error
           ? err
-          : new Error("Unknown error while fetching notes")
+          : new Error("Unknown error while creating note")
       );
       return false;
     }
     return true;
   };
 
-  const deleteNote = (note: Note) => {
-    setNotes(notes.filter((n) => n.id !== note.id));
-    if (note.id === selectedNote?.id) {
-      setSelectedNote(undefined);
+  const deleteNote = async (note: Note) => {
+    try {
+      const result = await api.deleteNote(note);
+      if (!result.success) {
+        throw new Error(
+          result.message ??
+            `Unknown error while deleting note with Id: ${note.id}`
+        );
+      }
+      setNotes(notes.filter((n) => n.id !== note.id));
+      if (note.id === selectedNote?.id) {
+        setSelectedNote(undefined);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err
+          : new Error(`Unknown error while deleting note with Id: ${note.id}`)
+      );
+      return false;
     }
     return true;
   };
 
-  const updateNote = (note: Note) => {
-    setNotes(notes.map((n) => (n.id === note.id ? note : n)));
+  const updateNote = async (note: Note) => {
+    try {
+      const result = await api.updateNote(note);
+      if (!result.success) {
+        throw new Error(
+          result.message ??
+            `Unknown error while updating note with Id: ${note.id}`
+        );
+      }
+      setNotes(notes.map((n) => (n.id === note.id ? note : n)));
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err
+          : new Error(`Unknown error while updating note with Id: ${note.id}`)
+      );
+      return false;
+    }
+    return true;
   };
 
   const _setSelectedNote = (note?: Note) => {
