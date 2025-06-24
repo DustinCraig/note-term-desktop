@@ -32,11 +32,11 @@ export class API {
     } as StandardResponse;
   }
 
-  async get(url: string) {
+  private async get(url: string) {
     return this._fetch(url);
   }
 
-  async post(url: string, data?: any) {
+  private async post(url: string, data?: any) {
     return this._fetch(url, {
       method: "POST",
       body: JSON.stringify(data),
@@ -46,13 +46,41 @@ export class API {
     });
   }
 
-  async createNote(note: Note): Promise<StandardResponse> {
+  private async put(url: string, data?: any) {
+    return this._fetch(url, {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
+
+  private async delete(url: string, data?: any) {
+    return this._fetch(url, {
+      method: "DELETE",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
+
+  async createNote(note: Omit<Note, "id">): Promise<StandardResponse> {
     return await this.post(`${this.baseUrl}/api/notes`, note);
   }
 
-  async fetchNotes(folderId?: number): Promise<Note[]> {
+  async updateNote(note: Note): Promise<StandardResponse> {
+    return await this.put(`${this.baseUrl}/api/notes/${note.id}`, note);
+  }
+
+  async deleteNote(note: Note): Promise<StandardResponse> {
+    return await this.delete(`${this.baseUrl}/api/notes/${note.id}`);
+  }
+
+  async fetchNotes(folderid?: number): Promise<Note[]> {
     const notes = await this.get(
-      `${this.baseUrl}/api/notes${folderId ? `?folderId=${folderId}` : ""}`
+      `${this.baseUrl}/api/notes${folderid ? `?folderid=${folderid}` : ""}`
     );
     return notes.data;
   }
@@ -60,6 +88,10 @@ export class API {
   async fetchFolders(): Promise<Folder[]> {
     const folders = await this.get(`${this.baseUrl}/api/folders`);
     return folders.data;
+  }
+
+  async createFolder(folder: Folder): Promise<StandardResponse> {
+    return await this.post(`${this.baseUrl}/api/folders`, folder);
   }
 }
 
