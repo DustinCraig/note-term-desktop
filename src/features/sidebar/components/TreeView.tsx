@@ -81,12 +81,12 @@ const FolderContent = styled.div<{ $isExpanded: boolean }>`
 export default () => {
   const { notes, addNote, setSelectedNote } = useNotes();
   const { folders, renameFolder } = useFolders();
-  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
-  const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>(
+  const [editingFolderId, setEditingFolderId] = useState<number | null>(null);
+  const [selectedFolderId, setSelectedFolderId] = useState<number | undefined>(
     undefined
   );
   const [editingName, setEditingName] = useState("");
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+  const [expandedFolders, setExpandedFolders] = useState<Set<number>>(
     new Set()
   );
   const [isCreateNotePopupOpen, setIsCreateNotePopupOpen] = useState(false);
@@ -95,8 +95,8 @@ export default () => {
     setSelectedNote(note);
   };
 
-  const onNoteCreateWithFolder = (folderId: string) => {
-    setSelectedFolderId(folderId);
+  const onNoteCreateWithFolder = (folderid: number) => {
+    setSelectedFolderId(folderid);
     setIsCreateNotePopupOpen(true);
   };
 
@@ -120,13 +120,13 @@ export default () => {
     }
   };
 
-  const toggleFolder = (folderId: string) => {
+  const toggleFolder = (folderid: number) => {
     setExpandedFolders((prev) => {
       const next = new Set(prev);
-      if (next.has(folderId)) {
-        next.delete(folderId);
+      if (next.has(folderid)) {
+        next.delete(folderid);
       } else {
-        next.add(folderId);
+        next.add(folderid);
       }
       return next;
     });
@@ -146,7 +146,7 @@ export default () => {
     <TreeView>
       {/* Root notes */}
       {notes
-        .filter((note) => !note.folderId)
+        .filter((note) => !note.folderid)
         .map((note) => (
           <NoteItem key={note.id} onClick={() => onNoteClick(note)}>
             {note.title}
@@ -183,7 +183,7 @@ export default () => {
           </FolderItem>
           <FolderContent $isExpanded={expandedFolders.has(folder.id)}>
             {notes
-              .filter((note) => note.folderId === folder.id)
+              .filter((note) => note.folderid === folder.id)
               .map((note) => (
                 <NoteItem
                   key={note.id}
