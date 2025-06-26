@@ -78,6 +78,10 @@ export const NoteProvider = ({ children }: { children: ReactNode }) => {
       if (!result.success) {
         throw new Error(result.message ?? "Unknown error while creating note");
       }
+      const noteId = result?.data?.id;
+      if (noteId) {
+        note.id = noteId;
+      }
       setNotes([...notes, note]);
       setSelectedNote(note);
       setIsPreview(false);
