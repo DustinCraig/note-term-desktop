@@ -93,6 +93,10 @@ export class API {
   async createFolder(folder: Folder): Promise<StandardResponse> {
     return await this.post(`${this.baseUrl}/api/folders`, folder);
   }
+
+  async updateFolder(folder: Folder): Promise<StandardResponse> {
+    return await this.put(`${this.baseUrl}/api/folders/${folder.id}`, folder);
+  }
 }
 
 export const api = new API(config.apiBaseUrl);

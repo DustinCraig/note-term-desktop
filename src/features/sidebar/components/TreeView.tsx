@@ -1,34 +1,57 @@
 import styled from "styled-components";
-import { TREE_ITEM_HOVER } from "../../../Styles";
+import {
+  TREE_ITEM_HOVER,
+  SIDEBAR_SELECTED_BG,
+  SIDEBAR_SELECTED_TEXT,
+  TEXT_COLOR,
+  BUTTON_BORDER_COLOR,
+} from "../../../Styles";
 import { useNotes, Note } from "../../../context/NoteContext";
 import { useFolders, Folder } from "../../../context/FolderContext";
 import { useState } from "react";
 import CreateNotePopup from "./CreateNotePopup";
+import Stack from "../../../components/Stack";
 
 const NOTE_PADDING_LEFT = 1.0;
 
-const TreeView = styled.div`
+const TreeViewContainer = styled.div`
   flex: 1;
+  padding-top: 1rem;
 `;
 
-const TreeItem = styled.div`
-  padding: 0.3rem 0;
+const TreeItem = styled.div<{ $selected?: boolean; $isNote?: boolean }>`
+  padding: 0.3rem 0 0.3rem 0.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  position: relative;
+  font-family: inherit;
+  font-size: 1.1em;
+  border-left: ${({ $isNote }) => ($isNote ? "1.5px dashed #0f0" : "none")};
+  color: ${({ $selected }) => ($selected ? SIDEBAR_SELECTED_TEXT : "inherit")};
+  background: ${({ $selected }) =>
+    $selected ? SIDEBAR_SELECTED_BG : "transparent"};
+  transition: background 0.15s, color 0.15s;
 
   &:hover {
     color: ${TREE_ITEM_HOVER};
+    background: rgba(0, 255, 0, 0.07);
+    text-decoration: underline;
   }
 `;
 
 const FolderItem = styled(TreeItem)`
   font-weight: bold;
+  font-size: 1.13em;
+  width: 100%;
 `;
 
-const NoteItem = styled(TreeItem)<{ $paddingLeft?: number }>`
-  padding-left: ${({ $paddingLeft = 0 }) => $paddingLeft}rem;
+const NoteItem = styled(TreeItem)<{
+  $paddingLeft?: number;
+  $selected?: boolean;
+}>`
+  padding-left: ${({ $paddingLeft = 0 }) => $paddingLeft + 1}rem;
 `;
 
 const FolderNameInput = styled.input`
@@ -41,7 +64,6 @@ const FolderNameInput = styled.input`
   font-size: inherit;
   width: 100%;
   max-width: 200px;
-
   &:focus {
     outline: none;
     border-color: ${TREE_ITEM_HOVER};
@@ -50,19 +72,28 @@ const FolderNameInput = styled.input`
 
 const RenameButton = styled.button`
   background: none;
-  border: none;
-  color: inherit;
+  border: 1px dashed ${BUTTON_BORDER_COLOR};
+  color: ${TEXT_COLOR};
   cursor: pointer;
-  padding: 0.2rem;
+  padding: 0.08em 0.25em;
+  margin-left: 0.5em;
+  font-size: 0.95em;
+  border-radius: 3px;
+  line-height: 1;
+  box-shadow: 0 0 4px ${TEXT_COLOR};
+  text-shadow: 0 0 3px ${TEXT_COLOR};
   opacity: 0;
-  transition: opacity 0.2s;
-
+  transition: opacity 0.2s, box-shadow 0.15s, color 0.15s, border-color 0.15s;
+  vertical-align: middle;
   ${TreeItem}:hover & {
     opacity: 1;
   }
-
-  &:hover {
-    color: ${TREE_ITEM_HOVER};
+  &:hover,
+  &:focus {
+    background: ${TREE_ITEM_HOVER};
+    box-shadow: 0 0 8px ${TEXT_COLOR};
+    border-color: ${TEXT_COLOR};
+    outline: none;
   }
 `;
 
@@ -78,8 +109,12 @@ const FolderContent = styled.div<{ $isExpanded: boolean }>`
   display: ${({ $isExpanded }) => ($isExpanded ? "block" : "none")};
 `;
 
+const StyledStack = styled(Stack)`
+  width: 100%;
+`;
+
 export default () => {
-  const { notes, addNote, setSelectedNote } = useNotes();
+  const { notes, addNote, setSelectedNote, selectedNote } = useNotes();
   const { folders, renameFolder } = useFolders();
   const [editingFolderId, setEditingFolderId] = useState<number | null>(null);
   const [selectedFolderId, setSelectedFolderId] = useState<number | undefined>(
@@ -143,12 +178,26 @@ export default () => {
   };
 
   return (
-    <TreeView>
+    <TreeViewContainer>
       {/* Root notes */}
       {notes
         .filter((note) => !note.folderid)
         .map((note) => (
-          <NoteItem key={note.id} onClick={() => onNoteClick(note)}>
+          <NoteItem
+            key={note.id}
+            onClick={() => onNoteClick(note)}
+            $isNote
+            $selected={selectedNote?.id === note.id}
+          >
+            <span
+              style={{
+                width: "1.2em",
+                display: "inline-block",
+                textAlign: "center",
+              }}
+            >
+              -
+            </span>
             {note.title}
           </NoteItem>
         ))}
@@ -157,7 +206,16 @@ export default () => {
       {folders.map((folder) => (
         <div key={folder.id}>
           <FolderItem onClick={() => toggleFolder(folder.id)}>
-            <Chevron $isExpanded={expandedFolders.has(folder.id)}>›</Chevron>
+            <Chevron $isExpanded={expandedFolders.has(folder.id)}>
+              {expandedFolders.has(folder.id) ? "v" : ">"}
+            </Chevron>
+            <span
+              style={{
+                width: "1.2em",
+                display: "inline-block",
+                textAlign: "center",
+              }}
+            ></span>
             {editingFolderId === folder.id ? (
               <FolderNameInput
                 value={editingName}
@@ -169,15 +227,21 @@ export default () => {
               />
             ) : (
               <>
-                {folder.name}
-                <RenameButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    startEditing(folder);
-                  }}
+                <StyledStack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
                 >
-                  ✎
-                </RenameButton>
+                  <div>{folder.name}</div>
+                  <RenameButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startEditing(folder);
+                    }}
+                  >
+                    ✎
+                  </RenameButton>
+                </StyledStack>
               </>
             )}
           </FolderItem>
@@ -189,15 +253,37 @@ export default () => {
                   key={note.id}
                   onClick={() => onNoteClick(note)}
                   $paddingLeft={NOTE_PADDING_LEFT}
+                  $isNote
+                  $selected={selectedNote?.id === note.id}
                 >
+                  <span
+                    style={{
+                      width: "1.2em",
+                      display: "inline-block",
+                      textAlign: "center",
+                    }}
+                  >
+                    -
+                  </span>
                   {note.title}
                 </NoteItem>
               ))}
             <NoteItem
               onClick={() => onNoteCreateWithFolder(folder.id)}
               $paddingLeft={NOTE_PADDING_LEFT}
+              $isNote
+              style={{ opacity: 0.7 }}
             >
-              + Note
+              <span
+                style={{
+                  width: "1.2em",
+                  display: "inline-block",
+                  textAlign: "center",
+                }}
+              >
+                +
+              </span>{" "}
+              Note
             </NoteItem>
           </FolderContent>
         </div>
@@ -207,6 +293,6 @@ export default () => {
         onClose={onCreateNoteClose}
         onSubmit={onCreateNoteSubmit}
       />
-    </TreeView>
+    </TreeViewContainer>
   );
 };

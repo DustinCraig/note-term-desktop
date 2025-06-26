@@ -19,7 +19,7 @@ export type FolderContextType = {
   folders: Folder[];
   addFolder: (folderName: string) => Promise<boolean>;
   deleteFolder: (folder: Folder) => boolean;
-  renameFolder: (folder: Folder, newName: string) => boolean;
+  renameFolder: (folder: Folder, newName: string) => Promise<boolean>;
   isLoading: boolean;
   error: Error | null;
 };
@@ -93,13 +93,38 @@ export const FolderProvider = ({ children }: { children: ReactNode }) => {
     return true;
   };
 
-  const renameFolder = (folder: Folder, newName: string) => {
+  const renameFolder = async (folder: Folder, newName: string) => {
     if (!newName) {
       throw new Error("Got empty folder name");
     }
-    setFolders(
-      folders.map((f) => (f.id === folder.id ? { ...f, name: newName } : f))
-    );
+
+    const newFolder = {
+      ...folder,
+      name: newName,
+    } as Folder;
+
+    try {
+      const result = await api.updateFolder(newFolder);
+      if (!result.success) {
+        throw new Error(
+          result.message ??
+            `Unknown error while trying to update folder with id: ${folder.id}`
+        );
+      }
+      setFolders(
+        folders.map((f) => (f.id === folder.id ? { ...f, name: newName } : f))
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err
+          : new Error(
+              `Unknown error while trying to update folder name with id: ${folder.id}`
+            )
+      );
+      return false;
+    }
+
     return true;
   };
 

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { BUTTON_BORDER_COLOR } from "../Styles";
 import styled from "styled-components";
 
 export type PopupProps = {
@@ -26,7 +27,7 @@ const PopupContent = styled.div`
   padding: 3rem;
   width: 90vw;
   max-width: 500px;
-  border: 2px solid #fff;
+  border: 2px solid ${BUTTON_BORDER_COLOR};
   border-radius: 4px;
 `;
 

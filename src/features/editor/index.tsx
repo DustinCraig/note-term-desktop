@@ -5,6 +5,8 @@ import {
   DIVIDER_COLOR,
   SELECTION_COLOR,
   BUTTON_HOVER_BACKGROUND_COLOR,
+  BACKGROUND_COLOR,
+  BUTTON_BORDER_COLOR,
 } from "../../Styles";
 import { useNotes, Note } from "../../context/NoteContext";
 import styled from "styled-components";
@@ -21,10 +23,12 @@ const EditorContainer = styled.div`
 `;
 
 const EditorHeader = styled.div`
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid ${EDITOR_HEADER_BORDER_COLOR};
+  padding: 1rem 2rem;
+  border-bottom: 2px solid ${EDITOR_HEADER_BORDER_COLOR};
   display: flex;
   justify-content: space-between;
+  font-size: 1.3em;
+  font-weight: bold;
 `;
 
 const EditorTitle = styled.input`
@@ -33,8 +37,12 @@ const EditorTitle = styled.input`
   color: ${TEXT_COLOR};
   width: 100%;
   outline: none;
+  font-size: 1.2em;
+  font-weight: bold;
+  font-family: inherit;
+  padding: 0.5rem 0;
   &:focus {
-    border-bottom: 1px solid ${DIVIDER_COLOR};
+    border-bottom: 2px solid ${DIVIDER_COLOR};
   }
 `;
 
@@ -43,33 +51,48 @@ const EditorActionsContainer = styled.div`
   flex-direction: row;
 `;
 
+const TopBarButton = styled(Button)`
+  margin-left: 0.3em;
+  margin-right: 0.3em;
+  padding: 0.18em 0.7em;
+  font-size: 0.95em;
+  border-radius: 5px;
+`;
+
 const Editor = styled.textarea`
   flex: 1;
   width: 100%;
   height: 100%;
-  background: #000;
+  background: ${BACKGROUND_COLOR};
   color: ${TEXT_COLOR};
-  font-family: 'Courier New', monospace;
-  line-height: 1.5;
-  border: none;
-  padding: 1rem;
-  resize: none;e
+  line-height: 1.6;
+  border: 2px solid ${DIVIDER_COLOR};
+  padding: 2rem;
+  resize: none;
   outline: none;
-
-  letter-spacing: 0.05em;
+  font-size: 1.3em;
+  font-family: inherit;
   white-space: pre-wrap;
   word-break: break-word;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   &::selection {
     background-color: ${SELECTION_COLOR};
+  }
+  &:focus {
+    border-color: ${TEXT_COLOR};
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
   }
 `;
 
 const PreviewContainer = styled.div`
   flex: 1;
-  padding: 1rem;
+  padding: 2rem;
   overflow-y: auto;
-  background: #000;
-  color: ${TEXT_COLOR}
+  background: ${BACKGROUND_COLOR};
+  color: ${TEXT_COLOR};
+  font-size: 1.3em;
+  font-family: inherit;
+  line-height: 1.6;
 
   h1,
   h2,
@@ -77,19 +100,26 @@ const PreviewContainer = styled.div`
   h4,
   h5,
   h6 {
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    font-size: inherit;
+    font-family: inherit;
   }
 
-  p { 
-    margin-bottom: 1rem;
-    line-height: 1.5;
+  p {
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+    font-size: inherit;
+    font-family: inherit;
   }
 
   code {
-    background-color: ${BUTTON_HOVER_BACKGROUND_COLOR}
-    padding: 0.1rem 0.3rem;
+    background-color: ${BUTTON_HOVER_BACKGROUND_COLOR};
+    padding: 0.2rem 0.5rem;
     border-radius: 3px;
+    font-size: inherit;
+    font-family: inherit;
   }
 `;
 
@@ -201,10 +231,10 @@ export default () => {
             <EditorTitle value={localNote.title} onChange={onTitleChange} />
             <EditorActionsContainer>
               {!isPreview && <Button onClick={onSave}>Save</Button>}
-              <Button onClick={onTogglePreview}>
+              <TopBarButton onClick={onTogglePreview}>
                 {isPreview ? "Edit" : "Preview"}
-              </Button>
-              <Button onClick={onDelete}>Delete</Button>
+              </TopBarButton>
+              <TopBarButton onClick={onDelete}>Delete</TopBarButton>
             </EditorActionsContainer>
           </EditorHeader>
 

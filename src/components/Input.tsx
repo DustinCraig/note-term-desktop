@@ -24,6 +24,7 @@ const Input = styled.input`
   width: 100%;
   outline: none;
   caret-color: ${TEXT_COLOR};
+  font-size: 1.2em;
 `;
 
 const Cursor = styled.span<{ $isVisible: boolean }>`
