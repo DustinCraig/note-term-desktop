@@ -76,6 +76,10 @@ export const FolderProvider = ({ children }: { children: ReactNode }) => {
           result.message ?? "Unknown error while creating folder"
         );
       }
+      const folderId = result?.data?.id;
+      if (folderId) {
+        folder.id = folderId;
+      }
       setFolders([...folders, folder]);
     } catch (err) {
       setError(
