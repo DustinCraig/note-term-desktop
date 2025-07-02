@@ -18,7 +18,7 @@ export type Folder = {
 export type FolderContextType = {
   folders: Folder[];
   addFolder: (folderName: string) => Promise<boolean>;
-  deleteFolder: (folder: Folder) => boolean;
+  deleteFolder: (folder: Folder) => Promise<boolean>;
   renameFolder: (folder: Folder, newName: string) => Promise<boolean>;
   isLoading: boolean;
   error: Error | null;
@@ -88,8 +88,26 @@ export const FolderProvider = ({ children }: { children: ReactNode }) => {
     return true;
   };
 
-  const deleteFolder = (folder: Folder) => {
-    setFolders(folders.filter((f) => f.id !== folder.id));
+  const deleteFolder = async (folder: Folder) => {
+    try {
+      const result = await api.deleteFolder(folder);
+      if (!result.success) {
+        throw new Error(
+          result.message ??
+            `Unknown error while trying to delete folder with id: ${folder.id}`
+        );
+      }
+      setFolders(folders.filter((f) => f.id !== folder.id));
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err
+          : new Error(
+              `Unknown error while trying to delete folder name with id: ${folder.id}`
+            )
+      );
+      return false;
+    }
     return true;
   };
 

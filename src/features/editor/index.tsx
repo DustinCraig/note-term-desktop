@@ -224,6 +224,7 @@ export default () => {
         isOpen={isDeleting}
         onClose={onDeleteCancel}
         onConfirmDelete={onDeleteConfirm}
+        contentType="note"
       />
       {localNote ? (
         <>

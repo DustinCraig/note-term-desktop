@@ -10,6 +10,7 @@ import { useNotes, Note } from "../../../context/NoteContext";
 import { useFolders, Folder } from "../../../context/FolderContext";
 import { useState } from "react";
 import CreateNotePopup from "./CreateNotePopup";
+import DeletePopup from "../../DeletePopup";
 import Stack from "../../../components/Stack";
 
 const NOTE_PADDING_LEFT = 1.0;
@@ -70,7 +71,7 @@ const FolderNameInput = styled.input`
   }
 `;
 
-const RenameButton = styled.button`
+const FolderActionButton = styled.button`
   background: none;
   border: 1px dashed ${BUTTON_BORDER_COLOR};
   color: ${TEXT_COLOR};
@@ -115,7 +116,7 @@ const StyledStack = styled(Stack)`
 
 export default () => {
   const { notes, addNote, setSelectedNote, selectedNote } = useNotes();
-  const { folders, renameFolder } = useFolders();
+  const { folders, renameFolder, deleteFolder } = useFolders();
   const [editingFolderId, setEditingFolderId] = useState<number | null>(null);
   const [selectedFolderId, setSelectedFolderId] = useState<number | undefined>(
     undefined
@@ -125,6 +126,7 @@ export default () => {
     new Set()
   );
   const [isCreateNotePopupOpen, setIsCreateNotePopupOpen] = useState(false);
+  const [deletingFolder, setDeletingFolder] = useState<Folder | null>(null);
 
   const onNoteClick = (note: Note) => {
     setSelectedNote(note);
@@ -167,6 +169,21 @@ export default () => {
     });
   };
 
+  const onFolderDelete = (folder: Folder) => {
+    setDeletingFolder(folder);
+  };
+
+  const onFolderDeleteCancel = () => {
+    setDeletingFolder(null);
+  };
+
+  const onFolderDeleteConfirm = () => {
+    if (deletingFolder) {
+      deleteFolder(deletingFolder);
+    }
+    setDeletingFolder(null);
+  };
+
   const onCreateNoteClose = () => {
     setIsCreateNotePopupOpen(false);
     setSelectedFolderId(undefined);
@@ -179,6 +196,12 @@ export default () => {
 
   return (
     <TreeViewContainer>
+      <DeletePopup
+        contentType="folder"
+        onClose={onFolderDeleteCancel}
+        onConfirmDelete={onFolderDeleteConfirm}
+        isOpen={Boolean(deletingFolder)}
+      />
       {/* Root notes */}
       {notes
         .filter((note) => !note.folderid)
@@ -233,14 +256,28 @@ export default () => {
                   alignItems="center"
                 >
                   <div>{folder.name}</div>
-                  <RenameButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      startEditing(folder);
-                    }}
+                  <StyledStack
+                    direction="row"
+                    justifyContent="flex-end"
+                    alignItems="center"
                   >
-                    ✎
-                  </RenameButton>
+                    <FolderActionButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startEditing(folder);
+                      }}
+                    >
+                      ✎
+                    </FolderActionButton>
+                    <FolderActionButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingFolder(folder);
+                      }}
+                    >
+                      X
+                    </FolderActionButton>
+                  </StyledStack>
                 </StyledStack>
               </>
             )}

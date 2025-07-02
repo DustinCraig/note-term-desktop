@@ -97,6 +97,13 @@ export class API {
   async updateFolder(folder: Folder): Promise<StandardResponse> {
     return await this.put(`${this.baseUrl}/api/folders/${folder.id}`, folder);
   }
+
+  async deleteFolder(folder: Folder): Promise<StandardResponse> {
+    return await this.delete(
+      `${this.baseUrl}/api/folders/${folder.id}`,
+      folder
+    );
+  }
 }
 
 export const api = new API(config.apiBaseUrl);
